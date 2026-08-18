@@ -1,9 +1,65 @@
 import { Plugin, parseYaml, Editor, MarkdownView } from 'obsidian';
+interface StarMapData {
+	name?: string;
+	link?: string;
+	height?: string;
+	width?: string;
+	sunColor?: string;
+	borderColor?: string;
+	spaceColor?: string;
+	planetColor?: string;
+	luaColor?: string;
+	lineColor?: string;
+	luaLineColor?: string;
+	ringColor?: string;
+	orbitColor?: string;
+	labelRot?: number;
+	vertical?: boolean;
+	belts?: BeltData[];
+	planets?: PlanetData[];
+}
+
+interface BeltData {
+	name: string;
+	distance: number;
+	link?: string;
+	thickness?: number;
+	color?: string;
+	asteroids?: AsteroidData[];
+}
+
+interface AsteroidData {
+	name: string;
+	link?: string;
+	size?: number;
+	angle?: number;
+}
+
+interface PlanetData {
+	name: string;
+	distance: number;
+	size: number;
+	link?: string;
+	rings?: RingData;
+	moons?: MoonData[];
+}
+
+interface RingData {
+	size?: number;
+	thickness?: number;
+	xRot?: number;
+	zRot?: number;
+}
+
+interface MoonData {
+	name: string;
+	size?: number;
+	link?: string;
+}
 
 export default class StarMapPlugin extends Plugin {
 
-	async onload() {	//<--- Obsidian loads the plugin on startup, and runs this.
-		//This is the part where ModAuthor adds an example.
+	async onload() {
 		this.addCommand({
 					id: 'insert-starmap-template',
 					name: 'Insert starmap template',
@@ -93,7 +149,7 @@ planets:
       - name: Dread
         size:
         
-  - name: Xyl Gas Giant
+  - name: Author Gas Giant
     distance: 64.5
     size: 100
     link: "Xyl Gas Giant"  #Link doesn't need to have the same name!
@@ -195,46 +251,41 @@ planets:
 			}
 		});
 
-		console.log('Starmap loading.');
 
 		this.registerMarkdownCodeBlockProcessor("starmap", (source, el, ctx) => {
-			//Now this part grabs the YAML and confirms whether it is valid
-			let data;
+			let data: StarMapData;
 			try {
-				data = parseYaml(source);
-			} catch (error) {
-				// If the user types invalid YAML, show an error message
+				data = parseYaml(source) as StarMapData;
+			} catch (_) {
 				el.createEl("div", { text: "Error parsing Star Map data. YAML formatting is very capricious, check it.", cls: "has-error" });
 				return;
 			}
 
-			const height = data.height || "400px"
-			const width = data.width || "850px"
-			const sunColor = data.sunColor || "var(--interactive-accent)";
-			const borderColor = data.borderColor || "var(--interactive-accent)";
-			const spaceColor = data.spaceColor || "#000000";
-			const planetColor = data.planetColor || "var(--interactive-accent)";
-			const luaColor = data.luaColor || "var(--interactive-accent)";
-			const lineColor = data.lineColor || "var(--text-normal)";
-			const luaLineColor = data.luaLineColor || "var(--text-normal)";
-			const ringColor = data.ringColor || "var(--text-normal)";
+			const height = data.height ?? "400px";
+			const width = data.width ?? "850px";
+			const sunColor = data.sunColor ?? "var(--interactive-accent)";
+			const borderColor = data.borderColor ?? "var(--interactive-accent)";
+			const spaceColor = data.spaceColor ?? "#000000";
+			const planetColor = data.planetColor ?? "var(--interactive-accent)";
+			const luaColor = data.luaColor ?? "var(--interactive-accent)";
+			const lineColor = data.lineColor ?? "var(--text-normal)";
+			const luaLineColor = data.luaLineColor ?? "var(--text-normal)";
+			const ringColor = data.ringColor ?? "var(--text-normal)";
 			let labelRot = data.labelRot ?? 0;
-			const orbitColor = data.orbitColor || "#FFF1";
-			const isVertical = data.vertical || false;
+			const orbitColor = data.orbitColor ?? "#FFF1";
+			const isVertical = data.vertical ?? false;
 
-			const attachInteractivity = (element: HTMLElement, link: string, name: string, accentColor: string, size: number, ringSelect: boolean = false) => {
-				// If no link is provided for this object, do nothing.
+			const attachInteractivity = (element: HTMLElement, link: string, name: string, accentColor: string, size: number, ringSelect = false) => {
 				if (!link) return;
 
-				element.style.cursor = "pointer";
-				size = size || 4;
+				element.setCssStyles({ cursor: "pointer" });
+				const safeSize = size || 4;
 
-				// Create a shared variable that all mouse events can see
 				let activeTooltip: HTMLElement | null = null;
 
-				// Click event
+				// Click Event
 				element.addEventListener("click", () => {
-					this.app.workspace.openLinkText(link, ctx.sourcePath, false);
+					void this.app.workspace.openLinkText(link, ctx.sourcePath, false);
 					if (activeTooltip) {
 						activeTooltip.remove();
 						activeTooltip = null;
@@ -242,54 +293,51 @@ planets:
 				});
 				
 				if(ringSelect){
-					// Animation
+					//The actual animation
 					let animatedRingEl: HTMLElement | null = null;
 					
-					element.addEventListener("mouseenter", (e) => {
-						if (!link) return; 
+					element.addEventListener("mouseenter", () => {
+						const ringThickness = ((5/50)*safeSize+2) * ((-Math.exp(-Math.pow(safeSize / 5, 2))) + 1);
+						const finalOpacity = 0.5;
 
-						const ringThickness = ((5/50)*size+2) * ((-Math.exp(-Math.pow(size / 5, 2))) + 1);
-						const finalOpacity = 0.5; // Final Alpha
-
-						// Create the ring element
 						animatedRingEl = element.createDiv();
-						animatedRingEl.style.zIndex = "999999";
-						animatedRingEl.style.position = "absolute";
-						animatedRingEl.style.top = "50%";
-						animatedRingEl.style.left = "50%";
 						
-						animatedRingEl.style.borderRadius = "50%";
-						animatedRingEl.style.pointerEvents = "none";
-						animatedRingEl.style.boxSizing = "border-box";
-						
-						animatedRingEl.style.outline = `${ringThickness}px solid ${accentColor}`;
-						animatedRingEl.style.outlineOffset = '10%';
+						animatedRingEl.setCssStyles({
+							zIndex: "999999",
+							position: "absolute",
+							top: "50%",
+							left: "50%",
+							borderRadius: "50%",
+							pointerEvents: "none",
+							boxSizing: "border-box",
+							outline: `${ringThickness}px solid ${accentColor}`,
+							outlineOffset: '10%',
+							transform: `translate(-50%, -50%)`,
+							opacity: "0",
+							transition: "transform 0.4s ease-out, opacity 0.4s ease-out"
+						});
 
-						// initial statet
-						animatedRingEl.style.transform = `translate(-50%, -50%)`;
-
-						let num = Math.exp(-Math.pow(size / 10, 2));
-
+						let num = Math.exp(-Math.pow(safeSize / 10, 2));
 						const scaleValue = 250 * (5 * num + 1);
-
 						const initialScale = `${scaleValue}%`;
-						animatedRingEl.style.width = `${size}px`;
-						animatedRingEl.style.height = `${size}px`;
-						animatedRingEl.style.transform = `translate(-50%, -50%) scale(${initialScale})`;
-						animatedRingEl.style.opacity = "0";
+						
+						animatedRingEl.setCssStyles({
+							width: `${safeSize}px`,
+							height: `${safeSize}px`,
+							transform: `translate(-50%, -50%) scale(${initialScale})`
+						});
 
-						// Transition
-						animatedRingEl.style.transition = "transform 0.4s ease-out, opacity 0.4s ease-out";
-
-						//trigger
-						setTimeout(() => {
+						// timeout
+						window.setTimeout(() => {
 							if (!animatedRingEl) return;
 							
-							// finals state
-							animatedRingEl.style.opacity = `${finalOpacity}`;
-							num = Math.exp(-Math.pow(size / 15, 2));
+							num = Math.exp(-Math.pow(safeSize / 15, 2));
 							const finalScale = 125 * (2* num + 1);
-							animatedRingEl.style.transform = `translate(-50%, -50%) scale(${finalScale}%)`; 
+							
+							animatedRingEl.setCssStyles({
+								opacity: String(finalOpacity),
+								transform: `translate(-50%, -50%) scale(${finalScale}%)`
+							});
 						}, 10); 
 					});
 
@@ -301,59 +349,62 @@ planets:
 					});
 				}
 				
-				// Hovering event
-				element.addEventListener("mouseenter", (e) => {
-					activeTooltip = document.createElement("div");
+				// Hover event
+				element.addEventListener("mouseenter", () => {
+					activeTooltip = document.body.createDiv({ cls: "starmap-tooltip-instance" });
 					
-					// Add a class so we can wipe it out if Obsidian re-renders mid-hover
-					activeTooltip.classList.add("starmap-tooltip-instance"); 
-					
-					activeTooltip.style.position = "fixed";
-					activeTooltip.style.zIndex = "99999";
-					activeTooltip.style.backgroundColor = "var(--background-secondary)";
-					activeTooltip.style.border = `1px solid ${borderColor}`; 
-					activeTooltip.style.padding = "10px";
-					activeTooltip.style.borderRadius = "5px";
-					activeTooltip.style.boxShadow = "0 4px 10px rgba(0,0,0,0.5)";
-					activeTooltip.style.pointerEvents = "none";
-					activeTooltip.style.color = "var(--text-normal)";
-					activeTooltip.style.fontSize = "12px";
-					activeTooltip.style.minWidth = "200px";
+					activeTooltip.setCssStyles({
+						position: "fixed",
+						zIndex: "99999",
+						backgroundColor: "var(--background-secondary)",
+						border: `1px solid ${borderColor}`,
+						padding: "10px",
+						borderRadius: "5px",
+						boxShadow: "0 4px 10px rgba(0,0,0,0.5)",
+						pointerEvents: "none",
+						color: "var(--text-normal)",
+						fontSize: "12px",
+						minWidth: "200px"
+					});
 
-					let htmlContent = `<h4 style="margin: 0 0 8px 0; color: ${accentColor}; border-bottom: 1px solid var(--background-modifier-border); padding-bottom: 4px;">${name}</h4>`;
+					// Safe HTML construction
+					const header = activeTooltip.createEl("h4", { text: name });
+					header.setCssStyles({ margin: "0 0 8px 0", color: accentColor, borderBottom: "1px solid var(--background-modifier-border)", paddingBottom: "4px" });
 
 					const file = this.app.metadataCache.getFirstLinkpathDest(link, ctx.sourcePath);
 					if (file) {
 						const cache = this.app.metadataCache.getFileCache(file);
-						if (cache && cache.frontmatter) {
+						if (cache?.frontmatter) {
 							for (const [key, value] of Object.entries(cache.frontmatter)) {
 								if (key !== "position") {
-									htmlContent += `<div style="display: flex; justify-content: space-between; margin-bottom: 4px;">
-										<span style="color: var(--text-muted); text-transform: capitalize;">${key}:</span> 
-										<span><strong>${value}</strong></span>
-									</div>`;
+									const row = activeTooltip.createDiv();
+									row.setCssStyles({ display: "flex", justifyContent: "space-between", marginBottom: "4px" });
+									
+									const labelEl = row.createSpan({ text: `${key}:` });
+									labelEl.setCssStyles({ color: "var(--text-muted)", textTransform: "capitalize" });
+									
+									row.createEl("strong", { text: String(value) });
 								}
 							}
 						} else {
-							htmlContent += `<div><em>No properties found.</em></div>`;
+							activeTooltip.createDiv().createEl("em", { text: "No properties found." });
 						}
 					} else {
-						htmlContent += `<div><em>Note not created yet.</em></div>`;
+						activeTooltip.createDiv().createEl("em", { text: "Note not created yet." });
 					}
-
-					activeTooltip.innerHTML = htmlContent;
-					document.body.appendChild(activeTooltip);
 				});
 				
-				// In movement
+				// Moving the tooltip with the user's mouse.
 				element.addEventListener("mousemove", (e) => {
 					if (activeTooltip) {
-						activeTooltip.style.left = `${e.clientX + 15}px`;
-						activeTooltip.style.top = `${e.clientY + 15}px`;
+						activeTooltip.setCssStyles({
+							left: `${e.clientX + 15}px`,
+							top: `${e.clientY + 15}px`
+						});
 					}
 				});
 
-				// destroyer method
+				// Destroyer method
 				element.addEventListener("mouseleave", () => {
 					if (activeTooltip) {
 						activeTooltip.remove();
@@ -362,374 +413,339 @@ planets:
 				});
 			};
 
-			
+			// destroy any lingering tooltips from previous renders
 			document.body.querySelectorAll('.starmap-tooltip-instance').forEach(e => e.remove());
 
 			// Clear out the container before we draw
 			el.empty();
-			el.style.position = "relative";
-			el.style.zIndex = "10";
+			el.setCssStyles({ position: "relative", zIndex: "10" });
 
-			// WRAPPER (Handles the Float and Page Layout)
+			// Obsidian Wrapper, accounting for verticality.
 			if (isVertical) {
-				el.style.float = "right";
-				el.style.width = height;  
-				el.style.height = width; 
-				el.style.margin = "0 0 20px 20px";
+				el.setCssStyles({
+					float: "right",
+					width: height,
+					height: width,
+					margin: "0 0 20px 20px"
+				});
 			} else {
-				el.style.float = "none";
-				el.style.width = "100%";
-				el.style.height = height; 
-				el.style.margin = "10px";
+				el.setCssStyles({
+					float: "none",
+					width: "100%",
+					height: height,
+					margin: "10px"
+				});
 			}
 
-			// MAP CANVAS (Handles the Drawing and Rotation)
+			// Map container, this guy is the one we blame when ANYTHING breaks.
 			const mapContainer = el.createDiv(); 
-			mapContainer.style.position = "relative";
-			mapContainer.style.backgroundColor = spaceColor; 
-			mapContainer.style.borderRadius = "0px";
-			mapContainer.style.overflow = "hidden"; 
+			mapContainer.setCssStyles({
+				position: "relative",
+				backgroundColor: spaceColor,
+				borderRadius: "8px", 
+				border: `5px solid ${borderColor}`,
+				padding: "0px",
+				overflow: "hidden"
+			});
 			
 			if (isVertical) { 
-				mapContainer.style.width = width; 
-				mapContainer.style.height = height; 
-				
-				mapContainer.style.transformOrigin = "top left";
-				mapContainer.style.transform = "rotateZ(90deg) translateY(-100%)";
-				
+				mapContainer.setCssStyles({
+					width: width,
+					height: height,
+					transformOrigin: "top left",
+					transform: "rotateZ(90deg) translateY(-100%)"
+				});
 				labelRot = labelRot - 90;
+			} else {
+				mapContainer.setCssStyles({ width: "100%", height: "100%" });
 			}
-			else {
-				mapContainer.style.width = "100%";
-				mapContainer.style.height = "100%";
-			}
-			
-			//This part creates a cool border
-			mapContainer.style.border = `5px solid ${borderColor}`;
-			mapContainer.style.padding = "0px";
-			mapContainer.style.borderRadius = "8px";
 			
 			//This draws the line in the middle.
 			const orbitalLine = mapContainer.createDiv();
-			orbitalLine.style.position = "absolute";
-			orbitalLine.style.top = "50%";
-			orbitalLine.style.left = "0";
-			orbitalLine.style.width = "100%";
-			orbitalLine.style.height = "2px";
-			orbitalLine.style.backgroundColor = `${lineColor}`;
+			orbitalLine.setCssStyles({
+				position: "absolute",
+				top: "50%",
+				left: "0",
+				width: "100%",
+				height: "2px",
+				backgroundColor: lineColor
+			});
 
-			// Taste the sun :music_note:
-			const starSize = 5000;
+			//Taste the sun (go watch History of the Entire World I guess)
+			const starSize = 5000;	//Technically we could mess this value to have different stars, but so far I feel like this is the best size.
 
 			const sun = mapContainer.createDiv();
-			sun.style.position = "absolute";
-			sun.style.top = "50%";
-
-			sun.style.width = `${starSize}px`;
-			sun.style.height = `${starSize}px`;
-
 			const shifting = starSize * 0.98;
 			const offShifting = starSize - shifting;
-			sun.style.left = `-${shifting}px`;
-
 			const sunRadius = starSize / 2;
 			const sunCenterX = -shifting + sunRadius;
 			const absSunCenter = Math.abs(sunCenterX);
 
-			sun.style.borderRadius = "50%";
-			sun.style.backgroundColor = sunColor;
-			sun.style.transform = "translateY(-50%)";
-			if (sunColor == "#000000") {
-				sun.style.boxShadow = "0 0 80px #FFFFFF";
-			}
-			else sun.style.boxShadow = `0 0 80px ${sunColor}`; 
+			sun.setCssStyles({
+				position: "absolute",
+				top: "50%",
+				width: `${starSize}px`,
+				height: `${starSize}px`,
+				left: `-${shifting}px`,
+				borderRadius: "50%",
+				backgroundColor: sunColor,
+				transform: "translateY(-50%)",
+				boxShadow: sunColor === "#000000" ? "0 0 80px #FFFFFF" : `0 0 80px ${sunColor}`
+			});
 
 			const starLabel = mapContainer.createDiv();
-			starLabel.innerText = data.name;
-			starLabel.style.position = "absolute";
-			starLabel.style.transformOrigin = "left top";
+			starLabel.innerText = data.name ?? "";
+			
+			starLabel.setCssStyles({
+				position: "absolute",
+				transformOrigin: "left top",
+				left: `${offShifting}px`,
+				fontSize: "20px",
+				color: luaLineColor,
+				whiteSpace: "nowrap"
+			});
+			
 			if(isVertical){
-				starLabel.style.transform = "rotateZ(-90deg)";	
-				starLabel.style.textAlign = "left";
-				starLabel.style.top = `96%`;
-
-				starLabel.style.left = `${offShifting}px`;
-
-				starLabel.style.fontSize = "20px";
-				starLabel.style.color = luaLineColor;
-				starLabel.style.whiteSpace = "nowrap"; 
-			}
-			else{
-				starLabel.style.left = `${offShifting}px`;
-				starLabel.style.fontSize = "20px";
-				starLabel.style.color = luaLineColor;
-				starLabel.style.whiteSpace = "nowrap"; 
+				starLabel.setCssStyles({
+					transform: "rotateZ(-90deg)",
+					textAlign: "left",
+					top: "96%"
+				});
 			}
 			
-			data.link = data.link || data.name;
-			attachInteractivity(sun, data.link, data.name ?? "The Sun", sunColor, starSize, false);
+			const starLink = data.link ?? data.name ?? "";
+			attachInteractivity(sun, starLink, data.name ?? "The Sun", sunColor, starSize, false);
 		
-			if (data && data.belts && Array.isArray(data.belts)) {
-				data.belts.forEach((belt: any) => {
-					// Belt
+			if (data.belts && Array.isArray(data.belts)) {
+				data.belts.forEach((belt: BeltData) => {
+					// The Giant Orbital Ring
 					const beltEl = mapContainer.createDiv();
-					beltEl.style.position = "absolute";
+					const bThick = belt.thickness ?? 15;
+					const bColor = belt.color ?? "var(--text-muted)";
 					
-					beltEl.style.left = `${sunCenterX}px`;
-					beltEl.style.top = "50%";
+					beltEl.setCssStyles({
+						position: "absolute",
+						left: `${sunCenterX}px`,
+						top: "50%",
+						width: `calc(${absSunCenter * 2}px + ${belt.distance * 2}%)`,
+						aspectRatio: "1 / 1",
+						transform: "translate(-50%, -50%)",
+						borderRadius: "50%",
+						border: `${bThick}px solid ${bColor}`,
+						boxShadow: `inset 0 0 10px ${bColor}, 0 0 10px ${bColor}`,
+						pointerEvents: "none"
+					});
 					
-					beltEl.style.width = `calc(${absSunCenter * 2}px + ${belt.distance * 2}%)`;
-					beltEl.style.aspectRatio = "1 / 1"; 
-					
-					beltEl.style.transform = "translate(-50%, -50%)";
-					beltEl.style.borderRadius = "50%";
-					
-					// Asteroid (in belt)
-					const bThick = belt.thickness || 15;
-					const bColor = belt.color || "var(--text-muted)";
-					
-					beltEl.style.border = `${bThick}px Solid ${bColor}`;
-					beltEl.style.boxShadow = `inset 0 0 10px ${bColor}, 0 0 10px ${bColor}`;
-					
-					beltEl.style.pointerEvents = "none";
-
-
+					// The Interactive Anchor (The Label) (Not all of the ring can be interacted with, I thought it was better this way.)
 					const beltLabel = mapContainer.createDiv();
 					beltLabel.innerText = belt.name;
-					beltLabel.style.position = "absolute";
 					
-					beltLabel.style.left = `calc(${belt.distance}% - ${bThick / 2}px)`;
-					beltLabel.style.top = "50%";
-					beltLabel.style.fontSize = "12px";
-					beltLabel.style.textAlign = "center";
-
-					if(isVertical){
-						beltLabel.style.transform = "translate(-50%, -150%) rotateZ(-90deg)";
-					}
-					else{
-						beltLabel.style.transform = "translate(-50%, -100%) rotateZ(0deg)";
-					}
+					beltLabel.setCssStyles({
+						position: "absolute",
+						left: `calc(${belt.distance}% - ${bThick / 2}px)`,
+						top: "50%",
+						fontSize: "12px",
+						textAlign: "center",
+						transform: isVertical ? "translate(-50%, -150%) rotateZ(-90deg)" : "translate(-50%, -100%) rotateZ(0deg)"
+					});
 					
-					attachInteractivity(beltLabel, belt.link, belt.name, bColor, 0, false);
+					const beltLink = belt.link ?? belt.name;
+					attachInteractivity(beltLabel, beltLink, belt.name, bColor, 0, false);
 
 					if (belt.asteroids && Array.isArray(belt.asteroids)) {
-                        belt.asteroids.forEach((asteroid: any) => {
+                        belt.asteroids.forEach((asteroid: AsteroidData) => {
                             const asteroidEl = beltEl.createDiv();
-                            asteroidEl.style.position = "absolute";
-                            
-                            const angleDeg = asteroid.angle || 0; 
+                            const angleDeg = asteroid.angle ?? 0; 
 							const angleRad = angleDeg * (Math.PI / 180);
-							
 							const cosVal = Math.cos(angleRad);
 							const sinVal = Math.sin(angleRad);
+							const astSize = asteroid.size ?? 8;
 
-							asteroidEl.style.left = `calc(50% + (50% + ${bThick / 2}px) * ${cosVal})`;
-							asteroidEl.style.top = `calc(50% + (50% + ${bThick / 2}px) * ${sinVal})`;
-                            asteroidEl.style.transform = "translate(-50%, -50%)";
-
-                            asteroidEl.style.width = `${asteroid.size}px`;
-                            asteroidEl.style.height = `${asteroid.size}px`;
-                            asteroidEl.style.backgroundColor = "var(--text-normal)";
-                            asteroidEl.style.borderRadius = "50%";
+							asteroidEl.setCssStyles({
+								position: "absolute",
+								left: `calc(50% + (50% + ${bThick / 2}px) * ${cosVal})`,
+								top: `calc(50% + (50% + ${bThick / 2}px) * ${sinVal})`,
+								transform: "translate(-50%, -50%)",
+								width: `${astSize}px`,
+								height: `${astSize}px`,
+								backgroundColor: "var(--text-normal)",
+								borderRadius: "50%",
+								pointerEvents: "auto"
+							});
 							
 							const asteroidLabel = asteroidEl.createDiv();
 							asteroidLabel.innerText = asteroid.name;
 
-							asteroidLabel.style.position = "absolute";
-							asteroidLabel.style.left = "50%";
-							
-							if(isVertical){
-								asteroidLabel.style.transform = "translate(-50%, -150%) rotateZ(-90deg)";
-							}
-							else{
-								asteroidLabel.style.transform = "translate(-50%, -100%) rotateZ(0deg)";
-							}
+							asteroidLabel.setCssStyles({
+								position: "absolute",
+								left: "50%",
+								textAlign: "center",
+								fontSize: "9px",
+								whiteSpace: "nowrap",
+								transform: isVertical ? "translate(-50%, -150%) rotateZ(-90deg)" : "translate(-50%, -100%) rotateZ(0deg)"
+							});
 
-							asteroidLabel.style.textAlign = "center";
-							asteroidLabel.style.fontSize = "9px";
-							asteroidLabel.style.whiteSpace = "nowrap";
-
-                            asteroidEl.style.pointerEvents = "auto";
-
-							asteroid.link = asteroid.link || asteroid.name;
-                            attachInteractivity(asteroidEl, asteroid.link, asteroid.name, "var(--text-normal)", asteroid.size, true);
+							const astLink = asteroid.link ?? asteroid.name;
+                            attachInteractivity(asteroidEl, astLink, asteroid.name, "var(--text-normal)", astSize, true);
                         });
                     }
 				});
 			}
 
-			//If there's planet data, we do the planets.
-			if (data && data.planets && Array.isArray(data.planets)) {
-				
-				data.planets.forEach((planet: any) => {
-					//========================================================================================================
-					//Orbit marker
+			if (data.planets && Array.isArray(data.planets)) {
+				data.planets.forEach((planet: PlanetData) => {
+					// The orbit for planetoids
 					const orbit = mapContainer.createDiv();
-					orbit.style.position = "absolute";
-					
-					orbit.style.left = `${sunCenterX}px`;
-					orbit.style.top = "50%";
-					
-					orbit.style.width = `calc(${(absSunCenter * 2)+5}px + ${planet.distance * 2}%)`;
-					orbit.style.aspectRatio = "1 / 1"; 
-					
-					orbit.style.transform = "translate(-50%, -50%)";
-					orbit.style.borderRadius = "50%";	
-					
-					orbit.style.border = `4px Solid ${orbitColor}`;
-					orbit.style.pointerEvents = "none";
-					//========================================================================================================
+					orbit.setCssStyles({
+						position: "absolute",
+						left: `${sunCenterX}px`,
+						top: "50%",
+						width: `calc(${(absSunCenter * 2)+5}px + ${planet.distance * 2}%)`,
+						aspectRatio: "1 / 1",
+						transform: "translate(-50%, -50%)",
+						borderRadius: "50%",
+						border: `4px solid ${orbitColor}`,
+						pointerEvents: "none"
+					});
 					
 					const planetEl = mapContainer.createDiv();
-
-					planetEl.style.position = "absolute";
-					planetEl.style.left = `${planet.distance}%`; 
-					planetEl.style.top = "50%";
-					planetEl.style.width = `${planet.size}px`;
-					planetEl.style.height = `${planet.size}px`;
-					planetEl.style.transform = "translate(-50%, -50%)";
+					planetEl.setCssStyles({
+						position: "absolute",
+						left: `${planet.distance}%`,
+						top: "50%",
+						width: `${planet.size}px`,
+						height: `${planet.size}px`,
+						transform: "translate(-50%, -50%)",
+						transformStyle: "preserve-3d"
+					});
 					
-					// We tell the "browser" to treat this container as a 3D coordinate space. Without this the rings don't actually work and I cry.
-					planetEl.style.transformStyle = "preserve-3d";
-
-					// Draw the Planet Sphere at Z=0
+					// Draws the Planet Sphere at Z=0.	This comes useful when you want to draw rings.
 					const sphere = planetEl.createDiv();
-					sphere.style.position = "absolute";
-					sphere.style.top = "0";
-					sphere.style.left = "0";
-					sphere.style.width = "100%";
-					sphere.style.height = "100%";
-					sphere.style.backgroundColor = planetColor;
-					sphere.style.borderRadius = "50%";
+					sphere.setCssStyles({
+						position: "absolute",
+						top: "0",
+						left: "0",
+						width: "100%",
+						height: "100%",
+						backgroundColor: planetColor,
+						borderRadius: "50%"
+					});
 
-					planet.link = planet.link || planet.name;
-					attachInteractivity(sphere, planet.link, planet.name, planetColor, planet.size, true);
+					const planetLink = planet.link ?? planet.name;
+					attachInteractivity(sphere, planetLink, planet.name, planetColor, planet.size, true);
+
+					let topOffset = 0;
 
 					if (planet.rings) {
-						const ringWidth = (planet.size) + (planet.rings.size ?? 20);
+						const ringWidth = planet.size + (planet.rings.size ?? 20);
 						const ringThickness = planet.rings.thickness ?? 6;
+
+						//Sacred geometry deliver us from the grasp of shitty calculations, be upon you the blessed trigonometry.
+						const xRot = Math.abs(planet.rings.xRot ?? 75) * (Math.PI / 180); 
+						const zRot = Math.abs(planet.rings.zRot ?? -20) * (Math.PI / 180);
+						const visualRingHeight = (ringWidth / 2.5) * Math.sqrt(Math.pow(Math.sin(zRot), 2) + Math.pow(Math.cos(xRot), 2) * Math.pow(Math.cos(zRot), 2));
+						//I'm proud of this math ok.
+
+						topOffset = visualRingHeight;
 						
 						const ring = planetEl.createDiv();
-						ring.style.position = "absolute";
-						ring.style.top = "50%";
-						ring.style.left = "50%";
-						
-						ring.style.width = `${ringWidth}px`;
-						ring.style.height = `${ringWidth}px`;
-						ring.style.borderRadius = "50%";
-						ring.style.border = `${ringThickness}px solid ${ringColor}`;
-						
-						ring.style.transform = `translate(-50%, -50%) rotateZ(${planet.rings.zRot ?? -20}deg) rotateX(${planet.rings.xRot ?? 75}deg)`;
-						ring.style.pointerEvents = "none";
+						ring.setCssStyles({
+							position: "absolute",
+							top: "50%",
+							left: "50%",
+							width: `${ringWidth}px`,
+							height: `${ringWidth}px`,
+							borderRadius: "50%",
+							border: `${ringThickness}px solid ${ringColor}`,
+							transform: `translate(-50%, -50%) rotateZ(${planet.rings.zRot ?? -20}deg) rotateX(${planet.rings.xRot ?? 75}deg)`,
+							pointerEvents: "none"
+						});
 					}
 
 					const labelEl = planetEl.createDiv();
 					labelEl.innerText = planet.name;
 
-					labelEl.style.position = "absolute";
-					labelEl.style.left = "50%"; 
+					labelEl.setCssStyles({
+						position: "absolute",
+						left: "50%",
+						fontSize: "12px",
+						whiteSpace: "nowrap",
+						top: planet.rings ? `-${Math.max(topOffset, 25)}px` : "-25px",
+						transformOrigin: labelRot !== 0 ? "left bottom" : undefined,
+						rotate: labelRot !== 0 ? `${labelRot}deg` : undefined,
+						transform: labelRot === 0 ? "translateX(-50%)" : undefined
+					});
 					
-					if(labelRot != 0){
-						labelEl.style.transformOrigin = "left bottom";
-						labelEl.style.rotate = `${labelRot}deg`;
-					}else labelEl.style.transform = "translateX(-50%)";
-					
-					labelEl.style.fontSize = "12px";
-					labelEl.style.whiteSpace = "nowrap";
-					
-					let ringWidth = 0;
-					let xRot = 0;
-					let zRot = 0;
-					let visualRingHeight = 0;
-					let topOffset = 0;
-					let topDrop = 0;
-
-					if (planet.rings) {
-						ringWidth = (planet.size || 10) + (planet.rings.size ?? 20);
-						xRot = Math.abs(planet.rings.xRot ?? 75)* (Math.PI / 180); 
-						zRot = Math.abs(planet.rings.zRot ?? -20)* (Math.PI / 180);
-						
-						visualRingHeight = (ringWidth / 2.5) * Math.sqrt(Math.pow(Math.sin(zRot), 2) + Math.pow(Math.cos(xRot), 2) * Math.pow(Math.cos(zRot), 2));
-						topOffset = visualRingHeight;
-						
-						labelEl.style.top = `-${Math.max(topOffset,25)}px`; 
-					} else {
-						labelEl.style.top = "-25px"; 
-					}
-
 					// Lua drawing
 					if (planet.moons && Array.isArray(planet.moons)) {
 						const moonListEl = planetEl.createDiv();
-						moonListEl.style.position = "absolute";
-						moonListEl.style.top = "100%"; 
-						moonListEl.style.left = "50%";
-						
-						if (planet.rings) {
-							topDrop = Math.max(topOffset-20,15); 
-						}
-						else {topDrop = 15;}  
-						
+						const topDrop = planet.rings ? Math.max(topOffset-20, 15) : 15;
 						const rowHeight = 16;  
 						const rowMargin = 8;   
 						
-						moonListEl.style.paddingTop = `${topDrop}px`;
+						moonListEl.setCssStyles({
+							position: "absolute",
+							top: "100%",
+							left: "50%",
+							paddingTop: `${topDrop}px`
+						});
 						
 						const lineEl = moonListEl.createDiv();
-						lineEl.style.position = "absolute";
-						lineEl.style.left = "0";
-						lineEl.style.top = "0";
-						lineEl.style.width = "1px";
-						lineEl.style.backgroundColor = luaLineColor;
-						lineEl.style.zIndex = "-1"; 
-						
 						const totalRowSpace = rowHeight + rowMargin;
 						const exactHeight = topDrop + ((planet.moons.length - 1) * totalRowSpace) + (rowHeight / 2);
-						lineEl.style.height = `${exactHeight}px`;
+						
+						lineEl.setCssStyles({
+							position: "absolute",
+							left: "0",
+							top: "0",
+							width: "1px",
+							backgroundColor: luaLineColor,
+							zIndex: "-1",
+							height: `${exactHeight}px`
+						});
 
-						// Lua drawing proper
-						planet.moons.forEach((moon: any) => {
-							const mSize = moon.size || 4;
+						planet.moons.forEach((moon: MoonData) => {
+							const mSize = moon.size ?? 4;
 							
 							const moonRow = moonListEl.createDiv();
-							moonRow.style.position = "relative";
-							
-							moonRow.style.height = `${rowHeight}px`;
-							moonRow.style.marginBottom = `${rowMargin}px`;
+							moonRow.setCssStyles({
+								position: "relative",
+								height: `${rowHeight}px`,
+								marginBottom: `${rowMargin}px`
+							});
 
 							const moonDot = moonRow.createDiv();
-							moonDot.style.position = "absolute";
-							moonDot.style.width = `${mSize}px`;
-							moonDot.style.height = `${mSize}px`;
-							moonDot.style.backgroundColor = luaColor;
-							moonDot.style.borderRadius = "50%";
-							moonDot.style.left = "0"; 
-							moonDot.style.top = "50%";
-							moonDot.style.transform = "translate(-45%, -50%)";
-							moon.link = moon.link || moon.name;
+							moonDot.setCssStyles({
+								position: "absolute",
+								width: `${mSize}px`,
+								height: `${mSize}px`,
+								backgroundColor: luaColor,
+								borderRadius: "50%",
+								left: "0",
+								top: "50%",
+								transform: "translate(-45%, -50%)"
+							});
 
-							attachInteractivity(moonDot, moon.link, moon.name, luaColor, moon.size, true);
+							const mLink = moon.link ?? moon.name;
+							attachInteractivity(moonDot, mLink, moon.name, luaColor, mSize, true);
 
 							const moonLabel = moonRow.createDiv();
 							moonLabel.innerText = moon.name;
-							moonLabel.style.position = "absolute";
-							moonLabel.style.left = `${(mSize / 2) + 8}px`; 
-							moonLabel.style.top = "50%";
-							moonLabel.style.transform = "translateY(-50%)";
-							if(isVertical) {
-								moonLabel.style.transformOrigin = "left top";
-								moonLabel.style.transform = "translateX(-10%) translateY(-50%) rotateZ(-45deg)";
-							}
-							moonLabel.style.fontSize = "10px";
-							moonLabel.style.color = luaLineColor;
-							moonLabel.style.whiteSpace = "nowrap"; 
+							
+							moonLabel.setCssStyles({
+								position: "absolute",
+								left: `${(mSize / 2) + 8}px`,
+								top: "50%",
+								fontSize: "10px",
+								color: luaLineColor,
+								whiteSpace: "nowrap",
+								transform: isVertical ? "translateX(-10%) translateY(-50%) rotateZ(-45deg)" : "translateY(-50%)",
+								transformOrigin: isVertical ? "left top" : undefined
+							});
 						});
 					}
 				});
 			}
 		});
-	}
-
-	onunload() {
-		console.log('Star Map plugin unloading...');
 	}
 }
