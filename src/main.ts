@@ -97,17 +97,17 @@ link:
 #==============   Section 3: Asteroid belts   ===============#
 
 belts:
-  - name: "Asteroid\n Belt"
+  - name: "Asteroid\\n Belt"
     distance: 57
     thickness: 70
     color: "#FFF2"
     
     asteroids:
-    - name: "Notable\n Asteroid"
+    - name: "Notable\\n Asteroid"
       size: 10
       angle: -2       #This silly value should probably not exceed ±3.5
       
-  - name: "Outer\n Belt"
+  - name: "Outer\\n Belt"
     distance: 94
     thickness: 20
     color: "#FFF6" 
