@@ -5,7 +5,5 @@
 	"minAppVersion": "1.0.0",
 	"description": "Release Version of Xyl's Starmap plugin! Yay!",
 	"author": "Xylhazlhztarr",
-	"authorUrl": "https://obsidian.md",
-	"fundingUrl": "https://obsidian.md/pricing",
 	"isDesktopOnly": false
 }
