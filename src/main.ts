@@ -8,9 +8,9 @@ interface StarMapData {
 	borderColor?: string;
 	spaceColor?: string;
 	planetColor?: string;
-	luaColor?: string;
+	moonColor?: string;
 	lineColor?: string;
-	luaLineColor?: string;
+	moonLineColor?: string;
 	ringColor?: string;
 	orbitColor?: string;
 	labelRot?: number;
@@ -73,13 +73,13 @@ export default class StarMapPlugin extends Plugin {
 # === Width will always match your page width. === #
 height: "400px" 
 lineColor: "#FFFFFF"
-luaLineColor: "#FFFFFF"
+moonLineColor: "#FFFFFF"
 ringColor: "#FFFFFF"
 sunColor: 
 borderColor: 
 spaceColor: 
 planetColor: 
-luaColor:
+moonColor:
 labelRot: -45   #Angles should probably be negative!
 orbitColor: "#FFF1"
 
@@ -97,17 +97,17 @@ link:
 #==============   Section 3: Asteroid belts   ===============#
 
 belts:
-  - name: "Asteroid\\n Belt"
+  - name: "Asteroid\n Belt"
     distance: 57
     thickness: 70
     color: "#FFF2"
     
     asteroids:
-    - name: "Notable\\n Asteroid"
+    - name: "Notable\n Asteroid"
       size: 10
       angle: -2       #This silly value should probably not exceed ±3.5
       
-  - name: "Outer\\n Belt"
+  - name: "Outer\n Belt"
     distance: 94
     thickness: 20
     color: "#FFF6" 
@@ -200,13 +200,13 @@ planets:
 
 height: "400px" 
 lineColor: "#FFFFFF"
-luaLineColor: "#FFFFFF"
+moonLineColor: "#FFFFFF"
 ringColor: "#FFFFFF"
 sunColor: 
 borderColor: 
 spaceColor: 
 planetColor: 
-luaColor:
+moonColor:
 labelRot: -45
 orbitColor: "#FFF1"
 
@@ -219,13 +219,13 @@ link:
 #==============   Section 3: Asteroid belts   ===============#
 
 belts:
-  - name: "Asteroid\\n Belt"
+  - name: "Asteroid\n Belt"
     distance: 57
     thickness: 70
     color: "#FFF2"
     
     asteroids:
-    - name: "Notable\\n Asteroid"
+    - name: "Notable\n Asteroid"
       size: 10
       angle: -2
 
@@ -267,9 +267,9 @@ planets:
 			const borderColor = data.borderColor ?? "var(--interactive-accent)";
 			const spaceColor = data.spaceColor ?? "#000000";
 			const planetColor = data.planetColor ?? "var(--interactive-accent)";
-			const luaColor = data.luaColor ?? "var(--interactive-accent)";
+			const moonColor = data.moonColor ?? "var(--interactive-accent)";
 			const lineColor = data.lineColor ?? "var(--text-normal)";
-			const luaLineColor = data.luaLineColor ?? "var(--text-normal)";
+			const moonLineColor = data.moonLineColor ?? "var(--text-normal)";
 			const ringColor = data.ringColor ?? "var(--text-normal)";
 			let labelRot = data.labelRot ?? 0;
 			const orbitColor = data.orbitColor ?? "#FFF1";
@@ -501,7 +501,7 @@ planets:
 				transformOrigin: "left top",
 				left: `${offShifting}px`,
 				fontSize: "20px",
-				color: luaLineColor,
+				color: moonLineColor,
 				whiteSpace: "nowrap"
 			});
 			
@@ -676,7 +676,7 @@ planets:
 						transform: labelRot === 0 ? "translateX(-50%)" : undefined
 					});
 					
-					// Lua drawing
+					// Lua drawing ---
 					if (planet.moons && Array.isArray(planet.moons)) {
 						const moonListEl = planetEl.createDiv();
 						const topDrop = planet.rings ? Math.max(topOffset-20, 15) : 15;
@@ -699,7 +699,7 @@ planets:
 							left: "0",
 							top: "0",
 							width: "1px",
-							backgroundColor: luaLineColor,
+							backgroundColor: moonLineColor,
 							zIndex: "-1",
 							height: `${exactHeight}px`
 						});
@@ -719,7 +719,7 @@ planets:
 								position: "absolute",
 								width: `${mSize}px`,
 								height: `${mSize}px`,
-								backgroundColor: luaColor,
+								backgroundColor: moonColor,
 								borderRadius: "50%",
 								left: "0",
 								top: "50%",
@@ -727,7 +727,7 @@ planets:
 							});
 
 							const mLink = moon.link ?? moon.name;
-							attachInteractivity(moonDot, mLink, moon.name, luaColor, mSize, true);
+							attachInteractivity(moonDot, mLink, moon.name, moonColor, mSize, true);
 
 							const moonLabel = moonRow.createDiv();
 							moonLabel.innerText = moon.name;
@@ -737,7 +737,7 @@ planets:
 								left: `${(mSize / 2) + 8}px`,
 								top: "50%",
 								fontSize: "10px",
-								color: luaLineColor,
+								color: moonLineColor,
 								whiteSpace: "nowrap",
 								transform: isVertical ? "translateX(-10%) translateY(-50%) rotateZ(-45deg)" : "translateY(-50%)",
 								transformOrigin: isVertical ? "left top" : undefined
