@@ -9,6 +9,10 @@ To check the expected YAML format, press CTRL + P / CMD + P and look for "Insert
 
 This will insert a pre-formatted YAML into your note, which will render the starmap whenever outside the code block, or in reading mode! (CTRL/CMD + E)
 There is also an un-commented version, which has a single instance of every object, and no comments.
+---
+
+# Installation
+If installing directly from the Repo, go into releases, and fetch both main.js and manifest.json. Throw those bad boys into your plugin folder inside .obsidian/plugins/{Xyl's Starmap}
 
 ---
 
