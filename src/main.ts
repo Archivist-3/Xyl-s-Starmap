@@ -71,6 +71,8 @@ export default class StarMapPlugin extends Plugin {
 # === Colours and px should be inside "  "     === #
 # === If any of these values is missing, there's a default!
 # === Width will always match your page width. === #
+vertical: false     #Turn this to true, or 1
+width:
 height: "400px" 
 lineColor: "#FFFFFF"
 moonLineColor: "#FFFFFF"
@@ -113,7 +115,7 @@ belts:
     color: "#FFF6" 
 
 
-#==============   Section 3: Planets & shi'  ===============#
+#==============   Section 4: Planets & shi'  ===============#
 planets:
   - name: Probably Mercury
     distance: 17
@@ -197,7 +199,8 @@ planets:
 					editorCallback: (editor: Editor, view: MarkdownView) => {
 						const template = `\`\`\`starmap
 #This is a fully customisable starmap, using YAML formatting.
-
+vertical: false
+width:
 height: "400px" 
 lineColor: "#FFFFFF"
 moonLineColor: "#FFFFFF"
@@ -219,18 +222,18 @@ link:
 #==============   Section 3: Asteroid belts   ===============#
 
 belts:
-  - name: "Asteroid\n Belt"
+  - name: "Asteroid\\n Belt"
     distance: 57
     thickness: 70
     color: "#FFF2"
     
     asteroids:
-    - name: "Notable\n Asteroid"
+    - name: "Notable\\n Asteroid"
       size: 10
       angle: -2
 
 
-#==============   Section 3: Planets & shi'  ===============#
+#==============   Section 4: Planets & shi'  ===============#
 planets:
   - name: Gas Giant
     distance: 64.5
