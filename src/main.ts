@@ -155,6 +155,11 @@ planets:
     distance: 64.5
     size: 100
     link: "Xyl Gas Giant"  #Link doesn't need to have the same name!
+						   #Links can be "[[note#header]]", "note#header", "[[note]]"...
+						   #And if you want to link to the same note, simply "#header" works!
+						   #NOTE that link->header inside the same note will not have properties.
+						   #(This is to avoid inheriting note-wide properties)
+
 					       #Rings go before moons!!   
     rings:                 #Rings have 2 rotation values, play with them!
       xRot: -75
@@ -372,29 +377,43 @@ planets:
 
 					// Safe HTML construction
 					const header = activeTooltip.createEl("h4", { text: name });
-					header.setCssStyles({ margin: "0 0 8px 0", color: accentColor, borderBottom: "1px solid var(--background-modifier-border)", paddingBottom: "4px" });
+					
 
-					const file = this.app.metadataCache.getFirstLinkpathDest(link, ctx.sourcePath);
-					if (file) {
-						const cache = this.app.metadataCache.getFileCache(file);
-						if (cache?.frontmatter) {
-							for (const [key, value] of Object.entries(cache.frontmatter)) {
-								if (key !== "position") {
-									const row = activeTooltip.createDiv();
-									row.setCssStyles({ display: "flex", justifyContent: "space-between", marginBottom: "4px" });
-									
-									const labelEl = row.createSpan({ text: `${key}:` });
-									labelEl.setCssStyles({ color: "var(--text-muted)", textTransform: "capitalize" });
-									
-									row.createEl("strong", { text: String(value) });
+
+					link = link.replace(/[\[\]"]/g, '');
+					const basePath = (link.slice(2, -2)).split('#')[0];
+					const targetPath = basePath === "" ? ctx.sourcePath : basePath;
+					const file = this.app.metadataCache.getFirstLinkpathDest(targetPath, ctx.sourcePath);
+
+					const isSameNote = file && file.path === ctx.sourcePath;
+					if (isSameNote){
+						if (file) {
+							header.setCssStyles({ margin: "0 0 8px 0", color: accentColor, borderBottom: "1px solid var(--background-modifier-border)", paddingBottom: "4px" });
+							const cache = this.app.metadataCache.getFileCache(file);
+							if (cache?.frontmatter) {
+								for (const [key, value] of Object.entries(cache.frontmatter)) {
+									if (key !== "position") {
+										const row = activeTooltip.createDiv();
+										row.setCssStyles({ display: "flex", justifyContent: "space-between", marginBottom: "4px" });
+										
+										const labelEl = row.createSpan({ text: `${key}:` });
+										labelEl.setCssStyles({ color: "var(--text-muted)", textTransform: "capitalize" });
+										
+										row.createEl("strong", { text: String(value) });
+									}
 								}
+							} else {
+								activeTooltip.createDiv().createEl("em", { text: "No properties found." });
 							}
 						} else {
-							activeTooltip.createDiv().createEl("em", { text: "No properties found." });
+							activeTooltip.createDiv().createEl("em", { text: "Note not created yet." });
 						}
-					} else {
-						activeTooltip.createDiv().createEl("em", { text: "Note not created yet." });
-					}
+				} else {
+					header.setCssStyles({ margin: "0 0 0px 0", color: accentColor});
+					activeTooltip.setCssStyles({
+						minWidth: "0px"
+					});
+				}
 				});
 				
 				// Moving the tooltip with the user's mouse.
@@ -646,13 +665,13 @@ planets:
 						//Sacred geometry deliver us from the grasp of shitty calculations, be upon you the blessed trigonometry.
 						const xRot = Math.abs(planet.rings.xRot ?? 75) * (Math.PI / 180); 
 						const zRot = Math.abs(planet.rings.zRot ?? -20) * (Math.PI / 180);
-						const visualRingHeight = (ringWidth / 2.5) * Math.sqrt(Math.pow(Math.sin(zRot), 2) + Math.pow(Math.cos(xRot), 2) * Math.pow(Math.cos(zRot), 2));
+						const visualRingHeight = ((ringWidth+ringThickness)/2) * Math.sqrt(Math.pow(Math.sin(zRot), 2) + Math.pow(Math.cos(xRot), 2) * Math.pow(Math.cos(zRot), 2));
 						//I'm proud of this math ok.
 
 						topOffset = visualRingHeight;
 						
 						const ring = planetEl.createDiv();
-						ring.setCssStyles({
+						ring.setCssStyles({	
 							position: "absolute",
 							top: "50%",
 							left: "50%",
