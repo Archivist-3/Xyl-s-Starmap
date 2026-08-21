@@ -30,6 +30,7 @@ interface BeltData {
 
 interface AsteroidData {
 	name: string;
+	colorOverride?: string;
 	link?: string;
 	size?: number;
 	angle?: number;
@@ -39,12 +40,14 @@ interface PlanetData {
 	name: string;
 	distance: number;
 	size: number;
+	colorOverride?: string;
 	link?: string;
 	rings?: RingData;
 	moons?: MoonData[];
 }
 
 interface RingData {
+	colorOverride?: string;
 	size?: number;
 	thickness?: number;
 	xRot?: number;
@@ -53,6 +56,7 @@ interface RingData {
 
 interface MoonData {
 	name: string;
+	colorOverride?: string;
 	size?: number;
 	link?: string;
 }
@@ -81,6 +85,10 @@ sunColor:
 borderColor: 
 spaceColor: 
 planetColor: 
+				#Planet, rings and moons may have their individual colours overriden via
+				#size: 23
+				#colorOverride: "#FFFFFF"    <--------- Add this line at any point of their block
+				#distnace: 11
 moonColor:
 labelRot: -45   #Angles should probably be negative!
 orbitColor: "#FFF1"
@@ -590,7 +598,7 @@ planets:
 								transform: "translate(-50%, -50%)",
 								width: `${astSize}px`,
 								height: `${astSize}px`,
-								backgroundColor: "var(--text-normal)",
+								backgroundColor: asteroid.colorOverride ||"var(--text-normal)",
 								borderRadius: "50%",
 								pointerEvents: "auto"
 							});
@@ -643,13 +651,14 @@ planets:
 					
 					// Draws the Planet Sphere at Z=0.	This comes useful when you want to draw rings.
 					const sphere = planetEl.createDiv();
+
 					sphere.setCssStyles({
 						position: "absolute",
 						top: "0",
 						left: "0",
 						width: "100%",
 						height: "100%",
-						backgroundColor: planetColor,
+						backgroundColor: planet.colorOverride || planetColor,
 						borderRadius: "50%"
 					});
 
@@ -678,7 +687,7 @@ planets:
 							width: `${ringWidth}px`,
 							height: `${ringWidth}px`,
 							borderRadius: "50%",
-							border: `${ringThickness}px solid ${ringColor}`,
+							border: `${ringThickness}px solid ${planet.rings.colorOverride || ringColor}`,
 							transform: `translate(-50%, -50%) rotateZ(${planet.rings.zRot ?? -20}deg) rotateX(${planet.rings.xRot ?? 75}deg)`,
 							pointerEvents: "none"
 						});
@@ -741,7 +750,7 @@ planets:
 								position: "absolute",
 								width: `${mSize}px`,
 								height: `${mSize}px`,
-								backgroundColor: moonColor,
+								backgroundColor: moon.colorOverride || moonColor,
 								borderRadius: "50%",
 								left: "0",
 								top: "50%",
