@@ -385,19 +385,22 @@ planets:
 
 					// Safe HTML construction
 					const header = activeTooltip.createEl("h4", { text: name });
+
 					
-
-
 					link = link.replace(/[\[\]"]/g, '');
-					const basePath = (link.slice(2, -2)).split('#')[0];
+					const basePath = link.split('#')[0];
+
 					const targetPath = basePath === "" ? ctx.sourcePath : basePath;
 					const file = this.app.metadataCache.getFirstLinkpathDest(targetPath, ctx.sourcePath);
 
 					const isSameNote = file && file.path === ctx.sourcePath;
-					if (isSameNote){
+
+					
+					if (!isSameNote) {
 						if (file) {
 							header.setCssStyles({ margin: "0 0 8px 0", color: accentColor, borderBottom: "1px solid var(--background-modifier-border)", paddingBottom: "4px" });
 							const cache = this.app.metadataCache.getFileCache(file);
+							
 							if (cache?.frontmatter) {
 								for (const [key, value] of Object.entries(cache.frontmatter)) {
 									if (key !== "position") {
@@ -414,15 +417,17 @@ planets:
 								activeTooltip.createDiv().createEl("em", { text: "No properties found." });
 							}
 						} else {
+							header.setCssStyles({ margin: "0 0 8px 0", color: accentColor, borderBottom: "1px solid var(--background-modifier-border)", paddingBottom: "4px" });
 							activeTooltip.createDiv().createEl("em", { text: "Note not created yet." });
 						}
-				} else {
-					header.setCssStyles({ margin: "0 0 0px 0", color: accentColor});
-					activeTooltip.setCssStyles({
-						minWidth: "0px"
-					});
-				}
-				});
+					} else {
+						//If it IS the same note, just show the title with no borders/properties
+						header.setCssStyles({ margin: "0 0 0px 0", color: accentColor});
+						activeTooltip.setCssStyles({
+							minWidth: "0px"
+						});
+					}
+					}); // End of hover event listener
 				
 				// Moving the tooltip with the user's mouse.
 				element.addEventListener("mousemove", (e) => {
