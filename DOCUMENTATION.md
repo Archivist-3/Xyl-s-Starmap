@@ -7,13 +7,13 @@ A quick overview of how to operate this silly plugin.
 | Modifier | Description |
 | --- | --- |
 | `Starmap` | [How to create a new starmap](DOCUMENTATION.md#Starmap) |
-| `Global parameters` | How to change map-wide parameters |
-| `Linking` | How to link any body to a note, header, etc |
-| `The Star` | Define link & name for The Star |
-| `Asteroid Belts` | How to create asteroid belts |
-| `Planets` | How to create planets |
-| `Planets: Moons` | How to add moons to planets |
-| `Planets: Rings` | How to add rings to planets |
+| `Global parameters` | [How to change map-wide parameters](DOCUMENTATION.md#Global-parameters) |
+| `Linking` | [How to link any body to a note, header, etc](DOCUMENTATION.md#Linking) |
+| `The Star` | [Define link & name for The Star](DOCUMENTATION.md#The-Star) |
+| `Asteroid Belts` | [How to create asteroid belts](DOCUMENTATION.md#Asteroid-Belts) |
+| `Planets` | [How to create planets](DOCUMENTATION.md#Planets) |
+| `Planets: Moons` | [How to add moons to planets](DOCUMENTATION.md#Planets) |
+| `Planets: Rings` | [How to add rings to planets](DOCUMENTATION.md#Planets) |
 
 # Starmap
 **Format Syntax:**
