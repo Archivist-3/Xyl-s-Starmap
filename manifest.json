@@ -1,8 +1,8 @@
 {
 	"id": "xyls-starmap",
 	"name": "Xyls Starmap",
-	"version": "1.0.6",
-	"minAppVersion": "1.0.6",
+	"version": "1.0.7",
+	"minAppVersion": "1.0.7",
 	"description": "A small plugin for custom starmaps, including colours, planets, moons, belts and more!",
 	"author": "Xylhazlhztarr",
 	"authorUrl": "https://github.com/Archivist-3",
