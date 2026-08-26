@@ -56,7 +56,9 @@ This command will insert a basic system, with only one planet and one belt, unco
 | `ringColor` | Changes the colour of all the planetary rings | `#FFFFFF` |
 | `moonColor` | Changes the colour of all the Moons | `#FFFFFF` |
 | `moonLineColor` | Changes the colour of the line that goes through all the moons of a planet | `#FFFFFF` |
+| `labelColor` | Changes the colour of Labels | `"#FFFFFF"` |
 | `labelRot` | Changes the rotation of Labels | `-45` (Recommend 0 for vertical) |
+| `moonLabelRot` | Changes the rotation, from the base 45, of moon Labels | `-45` (You can use `0.01` to obtain a different pivot point, at 45 degrees.) |
 | `orbitColor` | Changes the colour of the planetary orbits | `#FFF1` |
 
 ---
@@ -179,6 +181,7 @@ planets:
 | `link` | Defines the link for the planet. Letting it empty makes the link inherit the planet's name. | `"[[Link to note]]"` (check linking section.) |
 | `size` | Defines the size of the planet. | `10` |
 | `colorOverride` | Overrides the global colour for planets, changing it only in this instance. | `"#FFFFFF"` |
+| `labelOffset` | Adds a sort of padding to the planet's label. Can be useful for mobile version. | `50` |
 
 ---
 
@@ -230,6 +233,8 @@ planets:
 | `zRot` | Defines the X rotation of the rings. | `45`, `-45` |
 | `size` | Defines the distance of the rings **outer** edge. | `50` |
 | `thickness` | Defines how thick the rings are inwards. | `20` |
+| `colorOverride` | Overrides the global colour for rings, changing it only in this instance. | `"#FFFFFF"` |
+
 
 
 Of course, you can have both rings and moons.
