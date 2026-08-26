@@ -14,6 +14,8 @@ interface StarMapData {
 	ringColor?: string;
 	orbitColor?: string;
 	labelRot?: number;
+	moonLabelRot?: string;
+	labelColor?: string;
 	vertical?: boolean;
 	belts?: BeltData[];
 	planets?: PlanetData[];
@@ -44,6 +46,7 @@ interface PlanetData {
 	link?: string;
 	rings?: RingData;
 	moons?: MoonData[];
+	labelOffset?: string;
 }
 
 interface RingData {
@@ -75,22 +78,25 @@ export default class StarMapPlugin extends Plugin {
 # === Colours and px should be inside "  "     === #
 # === If any of these values is missing, there's a default!
 # === Width will always match your page width. === #
+# If you want proper documentation, head over to "https://github.com/Archivist-3/Xyl-s-Starmap/blob/main/DOCUMENTATION.md"
 vertical: false     #Turn this to true, or 1
-width:
 height: "400px" 
-lineColor: "#FFFFFF"
-moonLineColor: "#FFFFFF"
-ringColor: "#FFFFFF"
-sunColor: 
+width:
 borderColor: 
 spaceColor: 
+sunColor: 
+lineColor: "#FFFFFF"
 planetColor: 
 				#Planet, rings and moons may have their individual colours overriden via
 				#size: 23
 				#colorOverride: "#FFFFFF"    <--------- Add this line at any point of their block
 				#distnace: 11
+ringColor: "#FFFFFF"
 moonColor:
+moonLineColor: "#FFFFFF"
+labelColor:
 labelRot: -45   #Angles should probably be negative!
+moonLabelRot:
 orbitColor: "#FFF1"
 
 
@@ -213,17 +219,19 @@ planets:
 						const template = `\`\`\`starmap
 #This is a fully customisable starmap, using YAML formatting.
 vertical: false
-width:
 height: "400px" 
-lineColor: "#FFFFFF"
-moonLineColor: "#FFFFFF"
-ringColor: "#FFFFFF"
-sunColor: 
+width:
 borderColor: 
 spaceColor: 
-planetColor: 
+sunColor: 
+lineColor: "#FFFFFF"
+planetColor:
+ringColor: "#FFFFFF"
 moonColor:
+moonLineColor: "#FFFFFF"
+labelColor:
 labelRot: -45
+moonLabelRot:
 orbitColor: "#FFF1"
 
 
@@ -288,6 +296,8 @@ planets:
 			const moonLineColor = data.moonLineColor ?? "var(--text-normal)";
 			const ringColor = data.ringColor ?? "var(--text-normal)";
 			let labelRot = data.labelRot ?? 0;
+			const moonLabelRot = data.moonLabelRot ?? 0;
+			const labelColor = data.labelColor ?? "var(--text-normal)";
 			const orbitColor = data.orbitColor ?? "#FFF1";
 			const isVertical = data.vertical ?? false;
 
@@ -536,7 +546,7 @@ planets:
 				transformOrigin: "left top",
 				left: `${offShifting}px`,
 				fontSize: "20px",
-				color: moonLineColor,
+				color: labelColor,
 				whiteSpace: "nowrap"
 			});
 			
@@ -581,6 +591,7 @@ planets:
 						top: "50%",
 						fontSize: "12px",
 						textAlign: "center",
+						color: labelColor,
 						transform: isVertical ? "translate(-50%, -150%) rotateZ(-90deg)" : "translate(-50%, -100%) rotateZ(0deg)"
 					});
 					
@@ -617,6 +628,7 @@ planets:
 								textAlign: "center",
 								fontSize: "9px",
 								whiteSpace: "nowrap",
+								color: labelColor,
 								transform: isVertical ? "translate(-50%, -150%) rotateZ(-90deg)" : "translate(-50%, -100%) rotateZ(0deg)"
 							});
 
@@ -679,13 +691,14 @@ planets:
 						//Sacred geometry deliver us from the grasp of shitty calculations, be upon you the blessed trigonometry.
 						const xRot = Math.abs(planet.rings.xRot ?? 75) * (Math.PI / 180); 
 						const zRot = Math.abs(planet.rings.zRot ?? -20) * (Math.PI / 180);
-						const visualRingHeight = ((ringWidth+ringThickness)/2) * Math.sqrt(Math.pow(Math.sin(zRot), 2) + Math.pow(Math.cos(xRot), 2) * Math.pow(Math.cos(zRot), 2));
+						const visualRingHeight = (ringWidth/2) * Math.sqrt(Math.pow(Math.sin(zRot), 2) + Math.pow(Math.cos(xRot), 2) * Math.pow(Math.cos(zRot), 2));
 						//I'm proud of this math ok.
 
 						topOffset = visualRingHeight;
 						
 						const ring = planetEl.createDiv();
 						ring.setCssStyles({	
+							boxSizing: "border-box",
 							position: "absolute",
 							top: "50%",
 							left: "50%",
@@ -702,14 +715,17 @@ planets:
 					labelEl.innerText = planet.name;
 
 					labelEl.setCssStyles({
+						boxSizing: "border-box",
 						position: "absolute",
 						left: "50%",
 						fontSize: "12px",
 						whiteSpace: "nowrap",
+						color: labelColor,
 						top: planet.rings ? `-${Math.max(topOffset, 25)}px` : "-25px",
-						transformOrigin: labelRot !== 0 ? "left bottom" : undefined,
+						transformOrigin: labelRot !== 0 ? ("left bottom") : undefined,
 						rotate: labelRot !== 0 ? `${labelRot}deg` : undefined,
-						transform: labelRot === 0 ? "translateX(-50%)" : undefined
+						transform: labelRot === 0 ? "translateX(-50%)" : undefined,
+						paddingLeft: `${planet.labelOffset}px`
 					});
 					
 					// Lua drawing ---
@@ -773,10 +789,11 @@ planets:
 								left: `${(mSize / 2) + 8}px`,
 								top: "50%",
 								fontSize: "10px",
-								color: moonLineColor,
+								color: labelColor,
 								whiteSpace: "nowrap",
-								transform: isVertical ? "translateX(-10%) translateY(-50%) rotateZ(-45deg)" : "translateY(-50%)",
-								transformOrigin: isVertical ? "left top" : undefined
+								transformOrigin: moonLabelRot !== 0 ? "centre top" : "left bottom",
+								transform: isVertical ? `translateX(15%) translateY(-50%) rotateZ(${moonLabelRot-45}deg)` : `translateY(-50%) rotateZ(${moonLabelRot}deg)`
+								
 							});
 						});
 					}
