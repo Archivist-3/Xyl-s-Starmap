@@ -1,7 +1,7 @@
 {
 	"id": "xyls-starmap",
 	"name": "Xyls Starmap",
-	"version": "2.0.0",
+	"version": "2.0.1",
 	"minAppVersion": "1.0.0",
 	"description": "A small plugin for custom starmaps, including colours, planets, moons, belts and more! Now including a planetside view!",
 	"author": "Xylhazlhztarr",
