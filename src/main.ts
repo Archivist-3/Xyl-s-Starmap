@@ -1172,7 +1172,9 @@ rings:
 				if (!targetLink) return;
 
 				// Use the standard style API so this also works for SVG circle elements.
-				element.style.cursor = "pointer";
+				element.setCssStyles({
+					cursor: "pointer"
+				});
 
 				const safeSize = Number.isFinite(size) && size > 0 ? size : 4;
 				let activeTooltip: HTMLElement | null = null;
@@ -1238,7 +1240,9 @@ rings:
 					leaderPath.setAttribute("stroke-width", "5");
 					leaderPath.setAttribute("stroke-linecap", "round");
 					leaderPath.setAttribute("stroke-linejoin", "round");
-					leaderPath.style.filter = `drop-shadow(0 0 4px ${spaceColor})`;
+					leaderPath.setCssStyles({
+						filter: `drop-shadow(0 0 4px ${spaceColor})`
+					});
 
 					leaderSvg.appendChild(leaderPath);
 					document.body.appendChild(leaderSvg);
@@ -1402,7 +1406,9 @@ rings:
 						}
 					} else {
 						Object.assign(header.style, { margin: "0", color: accentColor });
-						tooltip.style.minWidth = "0px";
+						tooltip.setCssStyles({
+							minWidth: "0px"
+						});
 					}
 
 					if (animationType === "leader") {
