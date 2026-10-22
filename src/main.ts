@@ -1313,8 +1313,9 @@ rings:
 
 						const initialNum = Math.exp(-Math.pow(safeSize / 10, 2));
 						const initialScale = 250 * (5 * initialNum + 1);
-						currentRing.style.transform =
-							`translate(-50%, -50%) scale(${initialScale}%)`;
+						currentRing.setCssStyles({ 
+							transform: `translate(-50%, -50%) scale(${initialScale}%)`
+						});
 
 						window.setTimeout(() => {
 							// Ignore a timeout belonging to a ring that has already been removed.
@@ -1322,9 +1323,11 @@ rings:
 
 							const finalNum = Math.exp(-Math.pow(safeSize / 15, 2));
 							const finalScale = 125 * (2 * finalNum + 1);
-							currentRing.style.opacity = "0.5";
-							currentRing.style.transform =
-								`translate(-50%, -50%) scale(${finalScale}%)`;
+
+							currentRing.setCssStyles({
+								opacity: "0.5",
+								transform: `translate(-50%, -50%) scale(${finalScale}%)`
+							});
 						}, 10);
 					});
 
@@ -1649,7 +1652,9 @@ rings:
 					ringShape.setAttribute("stroke", ringColor);
 					ringShape.setAttribute("stroke-width", `${ringThickness}`);
 					ringShape.setAttribute("pointer-events", "stroke");
-					ringShape.style.filter = `drop-shadow(0 0 16px ${ringColor})`;
+					ringShape.setCssStyles({
+						filter: `drop-shadow(0 0 16px ${ringColor})`
+					});
 					ringSvg.appendChild(ringShape);
 					planet.appendChild(ringSvg);
 
